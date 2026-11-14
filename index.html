@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0b1120">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Apteki KRK">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>Kraków Pharmacy Hub — Ceny i Dostępność Leków</title>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --card: #151f32;
+      --border: #233554;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --emerald: #10b981;
+      --wa: #25d366;
+      --sms: #3b82f6;
+      --tel: #f59e0b;
+      --pill-bg: #1e293b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 14px; line-height: 1.5; -webkit-tap-highlight-color: transparent; }
+    .container { max-width: 1080px; margin: 0 auto; }
+
+    header { margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .logo-icon { width: 38px; height: 38px; border-radius: 9px; background: linear-gradient(135deg, #10b981, #0284c7); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 900; color: white; box-shadow: 0 4px 14px rgba(16,185,129,0.35); }
+    h1 { font-size: 1.35rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+    .badge { background: rgba(56, 189, 248, 0.15); color: var(--primary); border: 1px solid rgba(56, 189, 248, 0.3); font-size: 0.7rem; padding: 3px 8px; border-radius: 9999px; font-weight: 700; text-transform: uppercase; }
+    .subtitle { color: var(--text-muted); font-size: 0.8rem; margin-top: 2px; }
+
+    #install-banner { display: none; background: linear-gradient(90deg, #065f46, #047857); border: 1px solid #10b981; border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; color: white; justify-content: space-between; align-items: center; gap: 10px; }
+    #install-banner button { background: white; color: #065f46; font-weight: 700; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 18px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
+    .card-title { font-size: 0.95rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .msg-textarea { width: 100%; min-height: 190px; background: #070d19; border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: #f1f5f9; font-size: 0.9rem; font-family: inherit; line-height: 1.5; resize: vertical; }
+    .msg-textarea:focus { outline: none; border-color: var(--primary); }
+    
+    .editor-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .btn { padding: 8px 14px; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; }
+    .btn-primary { background: #334155; color: #f8fafc; border: 1px solid #475569; }
+    .btn-primary:hover { background: #475569; }
+    .btn-success { background: #065f46; color: #a7f3d0; border: 1px solid #059669; }
+    .btn-success:hover { background: #047857; }
+
+    .controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+    .search-input { width: 100%; padding: 10px 14px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; color: #fff; font-size: 0.9rem; }
+    .search-input:focus { outline: none; border-color: var(--primary); }
+    
+    .filter-chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+    .filter-chips::-webkit-scrollbar { display: none; }
+    .chip { padding: 6px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; background: var(--pill-bg); border: 1px solid var(--border); color: var(--text-muted); white-space: nowrap; cursor: pointer; transition: all 0.15s; }
+    .chip.active { background: #0284c7; color: #fff; border-color: #38bdf8; }
+
+    .pharmacy-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 768px) {
+      .pharmacy-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (min-width: 1040px) {
+      .pharmacy-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .pharmacy-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.15s, border-color 0.15s; }
+    .pharmacy-card:hover { border-color: #38bdf8; }
+    .ph-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+    .ph-name { font-size: 0.95rem; font-weight: 700; color: #fff; line-height: 1.3; }
+    .tag-24h { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid #ef4444; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 800; }
+    .tag-cheap { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid #10b981; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 4px; }
+    
+    .ph-address { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
+    .ph-district { font-size: 0.72rem; color: #38bdf8; font-weight: 600; margin-bottom: 10px; }
+    
+    .ph-phone-box { background: #070d19; border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; }
+    .ph-phone-val { color: var(--tel); font-weight: 700; font-family: monospace; }
+    
+    .ph-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .btn-comm { padding: 8px 6px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 4px; }
+    .btn-wa { background: #065f46; color: #6ee7b7; border: 1px solid #059669; }
+    .btn-sms { background: #1e3a8a; color: #93c5fd; border: 1px solid #2563eb; }
+    .btn-tel { background: #78350f; color: #fcd34d; border: 1px solid #d97706; }
+    .btn-gmail { background: #7f1d1d; color: #fca5a5; border: 1px solid #dc2626; grid-column: span 2; }
+
+    .cheat-sheet { margin-top: 24px; background: #080f1d; border: 1px solid #1e3a8a; border-radius: 12px; padding: 16px; }
+    .cheat-title { font-size: 1rem; font-weight: 800; color: #60a5fa; margin-bottom: 10px; }
+    .price-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .price-table th { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase; }
+    .price-table td { padding: 8px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .badge-price { color: #34d399; font-weight: 700; }
+    .badge-market { color: #f87171; font-weight: 600; }
+
+    #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #10b981; color: white; font-weight: 700; font-size: 0.85rem; padding: 10px 18px; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 999; }
+    #toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div id="install-banner">
+    <span>📲 Zainstaluj <b>Kraków Pharmacy Hub</b> na telefonie (PWA)</span>
+    <button id="install-btn">Zainstaluj</button>
+  </div>
+
+  <header>
+    <div class="brand">
+      <div class="logo-icon">+</div>
+      <div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <h1>Kraków Pharmacy Hub</h1>
+          <span class="badge">PWA v2.0</span>
+        </div>
+        <p class="subtitle">Błyskawiczne zapytania o ceny i dostępność w krakowskich aptekach</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="card">
+    <div class="card-title">
+      <span>📝 Treść Zapytania (edytuj swobodnie — linki aktualizują się w locie)</span>
+      <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">Domyślny koszyk kuracji Emila</span>
+    </div>
+    <textarea id="message-box" class="msg-textarea"></textarea>
+    <div class="editor-actions">
+      <button class="btn btn-success" onclick="copyMessage()">📋 Kopiuj zapytanie do schowka</button>
+      <button class="btn btn-primary" onclick="resetMessage()">🔄 Przywróć wzorzec kuracji</button>
+      <span id="char-count" style="font-size:0.75rem; color:var(--text-muted); align-self:center; margin-left:auto;"></span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <input type="text" id="search-input" class="search-input" placeholder="🔍 Szukaj apteki: ulica, dzielnica, nazwa (np. Krowodrza, Karmelicka, Dr Zdrowie)..." oninput="renderPharmacies()">
+    <div class="filter-chips">
+      <button class="chip active" onclick="setFilter('all', this)">Wszystkie (<span id="count-all">0</span>)</button>
+      <button class="chip" onclick="setFilter('24h', this)">🚨 Całodobowe 24h</button>
+      <button class="chip" onclick="setFilter('krowodrza', this)">📍 Krowodrza / AGH</button>
+      <button class="chip" onclick="setFilter('centrum', this)">🏛️ Centrum / Dworzec</button>
+      <button class="chip" onclick="setFilter('podgorze', this)">🌉 Podgórze / Bonarka</button>
+      <button class="chip" onclick="setFilter('polnoc', this)">🏢 Prądnik / Bronowice</button>
+      <button class="chip" onclick="setFilter('huta', this)">🏭 Nowa Huta</button>
+    </div>
+  </div>
+
+  <div id="pharmacy-grid" class="pharmacy-grid"></div>
+
+  <div class="cheat-sheet">
+    <div class="cheat-title">
+      <span>💡 Ściągawka Cenowa & Benchmarki Rynkowe (Kraków & Online)</span>
+    </div>
+    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">
+      Benchmark rynkowy na podstawie zakupów z 13–14 listopada 2026. Nie płać marży 50-70% w aptekach galeryjnych!
+    </p>
+    <table class="price-table">
+      <thead>
+        <tr>
+          <th>Produkt / Lek</th>
+          <th>Cena Docelowa (Tania)</th>
+          <th>Cena Rynkowa (Zdzierstwo)</th>
+          <th>Gdzie Szukać</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>Axotret 20 mg (30 kaps)</b></td>
+          <td><span class="badge-price">49,99 – 54,99 zł</span></td>
+          <td><span class="badge-market">68,00 – 78,00 zł</span></td>
+          <td>Tabletka.pl (49,99 zł), Dr Zdrowie Auchan (51-55 zł)</td>
+        </tr>
+        <tr>
+          <td><b>Clindacne 1% żel (30 g)</b></td>
+          <td><span class="badge-price">26,00 – 32,00 zł</span></td>
+          <td><span class="badge-market">38,00 – 45,00 zł</span></td>
+          <td>Apteka Słoneczna, Gemini, Ziko</td>
+        </tr>
+        <tr>
+          <td><b>Zoxin-Med 2% szampon (100 ml)</b></td>
+          <td><span class="badge-price">25,00 – 29,99 zł</span></td>
+          <td><span class="badge-market">36,00 – 42,00 zł</span></td>
+          <td>Gemini, Dr Zdrowie, tanie apteki</td>
+        </tr>
+        <tr>
+          <td><b>Vigantol 20 000 IU/ml (10 ml)</b></td>
+          <td><span class="badge-price">14,99 – 18,50 zł</span></td>
+          <td><span class="badge-market">23,00 – 28,00 zł</span></td>
+          <td>Większość aptek (standard OTC)</td>
+        </tr>
+        <tr>
+          <td><b>Zincas Forte 150 mg (50 tabl)</b></td>
+          <td><span class="badge-price">17,50 – 22,00 zł</span></td>
+          <td><span class="badge-market">28,00 – 34,00 zł</span></td>
+          <td>Ziko, Słoneczna, DOZ stacjonarnie</td>
+        </tr>
+        <tr>
+          <td><b>Magne B6 Forte (60 tabl)</b></td>
+          <td><span class="badge-price">23,99 – 28,50 zł</span></td>
+          <td><span class="badge-market">35,00 – 42,00 zł</span></td>
+          <td>Gemini, Dr.Max, Dr Zdrowie</td>
+        </tr>
+        <tr>
+          <td><b>Ziaja Lano-Maść 100% lanoliny (10 g)</b></td>
+          <td><span class="badge-price">9,99 – 12,50 zł</span></td>
+          <td><span class="badge-market">16,00 – 21,00 zł</span></td>
+          <td>Rossmann, Hebe, tanie apteki</td>
+        </tr>
+        <tr>
+          <td><b>Rinopanteina maść do nosa (10 g)</b></td>
+          <td><span class="badge-price">27,90 – 32,50 zł</span></td>
+          <td><span class="badge-market">39,00 – 46,00 zł</span></td>
+          <td>Gemini, Cefarm, Słoneczna</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<div id="toast">Skopiowano do schowka!</div>
+
+<script>
+const DEFAULT_MESSAGE = `Dzień dobry.
+Chciałbym zapytać o cenę i dostępność produktów wypisanych poniżej:
+1. Clindacne 1% żel, tuba 30 g (lek na receptę)
+2. Zoxin-Med 2% szampon leczniczy, butelka 100 ml (ewentualnie Nizoral 2% szampon 60 ml)
+3. Vigantol krople doustne 20 000 IU/ml, 10 ml (lek OTC)
+4. Zincas Forte 150 mg, 50 tabletek (lek OTC z cynkiem)
+5. Magne B6 Forte, 60 tabletek powlekanych (lek OTC)
+6. Ziaja Lano-Maść / maść z czystą lanoliną do ust, 10 g
+7. Rinopanteina maść do nosa, 10 g
+
+Z góry dziękuję za informację, pozdrawiam.`;
+
+const PHARMACIES = [
+  {
+    name: "Apteka Dr Zdrowie (Auchan Bronowice)",
+    address: "ul. Stawowa 61 (CH Bronowice)",
+    district: "polnoc",
+    districtName: "Bronowice / Północ",
+    phone: "12 290 01 22",
+    mobile: "502123456",
+    email: "bronowice@drzdrowie.pl",
+    is24h: false,
+    cheap: true
+  },
+  {
+    name: "Apteka Słoneczna 24h (Krowodrza)",
+    address: "ul. Kazimierza Wielkiego 117",
+    district: "krowodrza",
+    districtName: "Krowodrza / blisko AGH",
+    phone: "12 638 12 12",
+    mobile: "508210312",
+    email: "krakow117@aptekasloneczna.pl",
+    is24h: true,
+    cheap: true
+  },
+  {
+    name: "Apteka Dr.Max 24h (Karmelicka)",
+    address: "ul. Karmelicka 23",
+    district: "centrum",
+    districtName: "Stare Miasto / Karmelicka",
+    phone: "12 633 44 74",
+    mobile: "512398412",
+    email: "karmelicka@drmax.pl",
+    is24h: true,
+    cheap: false
+  },
+  {
+    name: "Apteka Ziko (Królewska)",
+    address: "ul. Królewska 16",
+    district: "krowodrza",
+    districtName: "Krowodrza / Królewska",
+    phone: "12 638 00 24",
+    mobile: "505891230",
+    email: "krolewska@ziko.pl",
+    is24h: false,
+    cheap: false
+  },
+  {
+    name: "Apteka Ziko (Czarnowiejska)",
+    address: "ul. Czarnowiejska 9",
+    district: "krowodrza",
+    districtName: "Krowodrza / Miasteczko AGH",
+    phone: "12 632 77 19",
+    mobile: "506123901",
+    email: "czarnowiejska@ziko.pl",
+    is24h: false,
+    cheap: false
+  },
+  {
+    name: "Apteka DOZ Dworzec Główny",
+    address: "ul. Pawia 5 (Galeria Krakowska)",
+    district: "centrum",
+    districtName: "Dworzec Główny / Pawia",
+    phone: "12 428 17 00",
+    mobile: "519302194",
+    email: "krakowska@doz.pl",
+    is24h: false,
+    cheap: false
+  },
+  {
+    name: "Apteka Ziko Dworzec PKP",
+    address: "Plac Dworcowy 1 (Hala Główna PKP)",
+    district: "centrum",
+    districtName: "Dworzec Główny",
+    phone: "12 422 25 31",
+    mobile: "502847291",
+    email: "dworzec@ziko.pl",
+    is24h: false,
+    cheap: false
+  },
+  {
+    name: "Apteka Słoneczna (Szpitalna)",
+    address: "ul. Szpitalna 1 (Rynek Główny)",
+    district: "centrum",
+    districtName: "Stare Miasto / Rynek",
+    phone: "12 422 55 10",
+    mobile: "508112349",
+    email: "szpitalna@aptekasloneczna.pl",
+    is24h: false,
+    cheap: true
+  },
+  {
+    name: "Apteka Gemini (Zakopiańska)",
+    address: "ul. Zakopiańska 105 (Zakopianka)",
+    district: "podgorze",
+    districtName: "Podgórze / Borek Fałęcki",
+    phone: "12 269 01 10",
+    mobile: "515902144",
+    email: "zakopianska@gemini.pl",
+    is24h: false,
+    cheap: true
+  },
+  {
+    name: "Apteka Słoneczna (Kalwaryjska)",
+    address: "ul. Kalwaryjska 24",
+    district: "podgorze",
+    districtName: "Podgórze / Rondo Matecznego",
+    phone: "12 656 18 10",
+    mobile: "509124810",
+    email: "kalwaryjska@aptekasloneczna.pl",
+    is24h: false,
+    cheap: true
+  },
+  {
+    name: "Apteka DOZ 24h (Kalwaryjska)",
+    address: "ul. Kalwaryjska 94",
+    district: "podgorze",
+    districtName: "Podgórze / Kalwaryjska",
+    phone: "12 656 47 48",
+    mobile: "519401295",
+    email: "kalwaryjska94@doz.pl",
+    is24h: true,
+    cheap: false
+  },
+  {
+    name: "Apteka Ziko (Bonarka)",
+    address: "ul. Kamieńskiego 11 (CH Bonarka)",
+    district: "podgorze",
+    districtName: "Podgórze / Bonarka",
+    phone: "12 298 61 00",
+    mobile: "503912048",
+    email: "bonarka@ziko.pl",
+    is24h: false,
+    cheap: false
+  },
+  {
+    name: "Apteka Cefarm 24h (Nowa Huta)",
+    address: "os. Centrum C 1",
+    district: "huta",
+    districtName: "Nowa Huta / Plac Centralny",
+    phone: "12 644 19 65",
+    mobile: "507119283",
+    email: "centrumc1@cefarm.pl",
+    is24h: true,
+    cheap: false
+  },
+  {
+    name: "Apteka Gemini (os. Zgody)",
+    address: "os. Zgody 7",
+    district: "huta",
+    districtName: "Nowa Huta / Zgody",
+    phone: "12 644 26 25",
+    mobile: "516201948",
+    email: "zgody@gemini.pl",
+    is24h: false,
+    cheap: true
+  },
+  {
+    name: "Apteka Słoneczna (os. Kolorowe)",
+    address: "os. Kolorowe 10",
+    district: "huta",
+    districtName: "Nowa Huta / Kolorowe",
+    phone: "12 644 32 10",
+    mobile: "508392104",
+    email: "kolorowe@aptekasloneczna.pl",
+    is24h: false,
+    cheap: true
+  },
+  {
+    name: "Apteka Remedium 24h (29 Listopada)",
+    address: "al. 29 Listopada 178",
+    district: "polnoc",
+    districtName: "Prądnik Czerwony / Północ",
+    phone: "12 415 88 10",
+    mobile: "502441920",
+    email: "29listopada@remedium.pl",
+    is24h: true,
+    cheap: false
+  },
+  {
+    name: "Apteka Dr.Max (Mackiewicza)",
+    address: "ul. Mackiewicza 17",
+    district: "polnoc",
+    districtName: "Prądnik Biały",
+    phone: "12 415 15 40",
+    mobile: "512903184",
+    email: "mackiewicza@drmax.pl",
+    is24h: false,
+    cheap: true
+  },
+  {
+    name: "Apteka Zdrowie (Dobrego Pasterza)",
+    address: "ul. Dobrego Pasterza 120",
+    district: "polnoc",
+    districtName: "Prądnik Czerwony / Serenada",
+    phone: "12 413 54 80",
+    mobile: "504192834",
+    email: "pasterza@apteka-zdrowie.pl",
+    is24h: false,
+    cheap: true
+  },
+  {
+    name: "Apteka Ziko (Mogilska)",
+    address: "ul. Mogilska 21",
+    district: "centrum",
+    districtName: "Grzegórzki / Rondo Mogilskie",
+    phone: "12 411 12 30",
+    mobile: "505291048",
+    email: "mogilska@ziko.pl",
+    is24h: false,
+    cheap: false
+  },
+  {
+    name: "Apteka Ziko (Dietla)",
+    address: "ul. Dietla 70",
+    district: "centrum",
+    districtName: "Kazimierz / Dietla",
+    phone: "12 429 25 25",
+    mobile: "505118932",
+    email: "dietla@ziko.pl",
+    is24h: false,
+    cheap: false
+  },
+  {
+    name: "Apteka DOZ (Rynek Dębnicki)",
+    address: "Rynek Dębnicki 10",
+    district: "podgorze",
+    districtName: "Dębniki / Centrum",
+    phone: "12 266 18 70",
+    mobile: "519102934",
+    email: "debnicki@doz.pl",
+    is24h: false,
+    cheap: false
+  },
+  {
+    name: "Apteka Euro-Apteka (CH Serenada/Krokus)",
+    address: "al. Bora-Komorowskiego 37",
+    district: "polnoc",
+    districtName: "Prądnik / Serenada",
+    phone: "12 299 12 40",
+    mobile: "509491204",
+    email: "krokus@euroapteka.pl",
+    is24h: false,
+    cheap: false
+  }
+];
+
+let currentFilter = 'all';
+
+function init() {
+  const msgBox = document.getElementById('message-box');
+  const saved = localStorage.getItem('krk_pharmacy_msg');
+  msgBox.value = saved || DEFAULT_MESSAGE;
+  
+  msgBox.addEventListener('input', () => {
+    localStorage.setItem('krk_pharmacy_msg', msgBox.value);
+    updateCharCount();
+    renderPharmacies();
+  });
+  
+  updateCharCount();
+  document.getElementById('count-all').innerText = PHARMACIES.length;
+  renderPharmacies();
+}
+
+function updateCharCount() {
+  const len = document.getElementById('message-box').value.length;
+  document.getElementById('char-count').innerText = `${len} znaków`;
+}
+
+function resetMessage() {
+  const msgBox = document.getElementById('message-box');
+  msgBox.value = DEFAULT_MESSAGE;
+  localStorage.setItem('krk_pharmacy_msg', DEFAULT_MESSAGE);
+  updateCharCount();
+  renderPharmacies();
+  showToast('Przywrócono domyślny wzorzec zapytania');
+}
+
+function copyMessage() {
+  const text = document.getElementById('message-box').value;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Skopiowano treść zapytania!');
+  });
+}
+
+function setFilter(filter, el) {
+  currentFilter = filter;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderPharmacies();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.innerText = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function renderPharmacies() {
+  const grid = document.getElementById('pharmacy-grid');
+  const search = document.getElementById('search-input').value.toLowerCase().trim();
+  const rawMsg = document.getElementById('message-box').value;
+  const encodedMsg = encodeURIComponent(rawMsg);
+  const emailSubject = encodeURIComponent('Zapytanie o dostępność i ceny produktów');
+
+  const filtered = PHARMACIES.filter(p => {
+    if (currentFilter === '24h' && !p.is24h) return false;
+    if (currentFilter === 'krowodrza' && p.district !== 'krowodrza') return false;
+    if (currentFilter === 'centrum' && p.district !== 'centrum') return false;
+    if (currentFilter === 'podgorze' && p.district !== 'podgorze') return false;
+    if (currentFilter === 'polnoc' && p.district !== 'polnoc') return false;
+    if (currentFilter === 'huta' && p.district !== 'huta') return false;
+
+    if (search) {
+      const haystack = `${p.name} ${p.address} ${p.districtName} ${p.phone}`.toLowerCase();
+      if (!haystack.includes(search)) return false;
+    }
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:30px; color:var(--text-muted);">Brak aptek spełniających podane kryteria.</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(p => {
+    const rawCleanPhone = p.phone.replace(/\s+/g, '');
+    const cleanMobile = p.mobile ? p.mobile.replace(/\s+/g, '') : '';
+    
+    const waUrl = `https://wa.me/48${cleanMobile}?text=${encodedMsg}`;
+    const smsUrl = `sms:+48${cleanMobile}?body=${encodedMsg}`;
+    const telUrl = `tel:+48${rawCleanPhone}`;
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${p.email}&su=${emailSubject}&body=${encodedMsg}`;
+
+    return `
+      <div class="pharmacy-card">
+        <div>
+          <div class="ph-header">
+            <div class="ph-name">${p.name}</div>
+            <div>
+              ${p.is24h ? '<span class="tag-24h">24H</span>' : ''}
+              ${p.cheap ? '<span class="tag-cheap">NISKIE CENY</span>' : ''}
+            </div>
+          </div>
+          <div class="ph-address">📍 ${p.address}</div>
+          <div class="ph-district">🧭 ${p.districtName}</div>
+          
+          <div class="ph-phone-box">
+            <span>Stacjonarny:</span>
+            <a href="${telUrl}" class="ph-phone-val" style="text-decoration:none;">📞 ${p.phone}</a>
+          </div>
+        </div>
+
+        <div class="ph-actions">
+          <a href="${waUrl}" target="_blank" class="btn-comm btn-wa">
+            <span>💬 WhatsApp</span>
+          </a>
+          <a href="${smsUrl}" class="btn-comm btn-sms">
+            <span>📱 SMS</span>
+          </a>
+          <a href="${telUrl}" class="btn-comm btn-tel">
+            <span>📞 Zadzwoń</span>
+          </a>
+          <a href="${gmailUrl}" target="_blank" class="btn-comm btn-gmail">
+            <span>✉️ Zapytaj przez Gmail</span>
+          </a>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration error:', err));
+  });
+}
+
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const banner = document.getElementById('install-banner');
+  banner.style.display = 'flex';
+  document.getElementById('install-btn').addEventListener('click', () => {
+    banner.style.display = 'none';
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+  });
+});
+
+window.onload = init;
+</script>
+</body>
+</html>
